@@ -298,7 +298,7 @@ class IamAuthWithoutResourcePermit(IamAuthPermit):
         return True
 
 
-class IamAuthProjectViewPermit(IamAuthPermit):
+class IamAuthProjectViewPermit(IsManager):
     def has_object_permission(self, request, view, obj):
         apply_actions = self.get_view_iam_actions(view)
         

@@ -26,6 +26,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import os
 import datetime
 
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import IsAuthenticated
+
 from blueapps.account.decorators import login_exempt
 from django.conf import settings
 from django.http import JsonResponse, HttpResponseRedirect
@@ -53,9 +56,9 @@ class HttpResponseIndexRedirect(HttpResponseRedirect):
 
 def init(request):
     # 更新cmdb通用角色
-    UserRole.update_cmdb_common_roles()
+    # UserRole.update_cmdb_common_roles()
     # 更新用户在各个系统的角色缓存
-    BKUserRole.get_or_update_user_roles(request.user.username)
+    # BKUserRole.get_or_update_user_roles(request.user.username)
     try:
         DEFAULT_PROJECT = UserProjectAccessRecord.objects.get(
             username=request.user.username
@@ -68,7 +71,7 @@ def init(request):
             "result": True,
             "data": {
                 "DEFAULT_PROJECT": DEFAULT_PROJECT,
-                "chname": request.user.get_property("chname"),
+                "nickname": request.user.nickname,
                 "username": request.user.username,
                 "all_access": UserRole.get_access_by_user(request.user.username),
                 "IS_ITSM_ADMIN": 1
@@ -86,30 +89,6 @@ def init(request):
 def index(request):
     """首页"""
     from adapter.core import TITLE, LOGIN_URL
-
-    # 如果发现不是woa过来的域名
-    if (
-        settings.WEIXIN_APP_EXTERNAL_HOST
-        and settings.WEIXIN_APP_EXTERNAL_HOST.find(request.get_host()) == -1
-    ):
-        # 如果 host的值和HTTP_REFERER一致，则跳转
-        # 如果是从开发者中心中出来的，此时有HTTP_REFERER
-        if "HTTP_REFERER" not in request.META or request.get_host() in request.META.get(
-            "HTTP_REFERER", ""
-        ):
-            return HttpResponseIndexRedirect(request.path)
-
-    # 默认为当前pass host
-    BK_USER_MANAGE_HOST = settings.BK_USER_MANAGE_HOST
-    # 如果来源域名非微信外网域名，则使用的BK_USER_MANAGE_HOST地址
-    if (
-        settings.WEIXIN_APP_EXTERNAL_HOST
-        and settings.WEIXIN_APP_EXTERNAL_HOST.find(request.get_host()) == -1
-    ):
-        BK_USER_MANAGE_HOST = FRONTEND_URL
-
-    logger.info("HTTP_REFERER={}".format(request.META.get("HTTP_REFERER", "")))
-
     try:
         notice_center_switch_value = SystemSettings.objects.get(
             key=NOTICE_CENTER_SWITCH
@@ -122,11 +101,9 @@ def index(request):
     lang = get_language()
     if lang in ["zh-cn", "zh-hans"]:
         doc_lang = "ZH"
-
+    
     version = get_version()
-    doc_url = settings.BK_DOC_URL.format(
-        lang=doc_lang, version=get_major_minor_version(version)
-    )
+    doc_url = settings.BK_DOC_URL.format(lang=doc_lang, version=get_major_minor_version(version))
 
     return render(
         request,
@@ -140,7 +117,6 @@ def index(request):
             "LOGIN_URL": LOGIN_URL,
             "LOG_NAME": _("流程服务"),
             "IS_USE_INVITE_SMS": "true" if settings.IS_USE_INVITE_SMS else "false",
-            "BK_USER_MANAGE_HOST": BK_USER_MANAGE_HOST,
             "BK_PAAS_ESB_HOST": settings.BK_PAAS_ESB_HOST,
             "TAM_PROJECT_ID": settings.TAM_PROJECT_ID,
             "DOC_URL": doc_url,
@@ -151,7 +127,6 @@ def index(request):
             "BK_PLATFORM_NAME": settings.BK_PLATFORM_NAME,
             "VERSION": version,
             "BKAPP_CSRF_COOKIE_NAME": settings.CSRF_COOKIE_NAME,
-            "BKAPP_CI_ENABLED": settings.BKAPP_CI_ENABLED,
         },
     )
 
@@ -181,16 +156,16 @@ def get_version():
     """
     # 读取文件内容
     app_desc = os.path.join(settings.PROJECT_ROOT, "VERSION")
-    with open(app_desc, "r") as file:
+    with open(app_desc, 'r') as file:
         content = file.read()
     return content.strip()
 
 
 def get_major_minor_version(version_string):
     # 使用 split() 方法分割字符串
-    parts = version_string.split(".")
+    parts = version_string.split('.')
     # 取前两个部分并用 '.' 连接
-    major_minor = ".".join(parts[:2])
+    major_minor = '.'.join(parts[:2])
     return major_minor
 
 

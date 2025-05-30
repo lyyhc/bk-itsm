@@ -100,14 +100,8 @@ class SchedulePermit(IamAuthPermit):
         return self.iam_auth(request, apply_actions, obj)
     
     
-class SlaMatrixPermit(IamAuthWithoutResourcePermit):
-    def has_permission(self, request, view):
-        if view.action == "matrix_of_service_type":
-            apply_actions = ["sla_priority_view", "platform_manage_access"]
-        else:
-            apply_actions = ["sla_priority_manage"]
-        
-        return self.iam_auth(request, apply_actions)
+class SlaMatrixPermit(IsAdmin):
+    pass        
     
     
     

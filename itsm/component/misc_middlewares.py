@@ -178,6 +178,7 @@ class ApiIgnoreCheck(MiddlewareMixin):
             or request.path.find("/api/ticket/operational/workflows") >= 0
             or request.path.find("/api/ticket/receipts/get_ticket_log") >= 0
             or request.path.find("/openapi/") >= 0
+            or request.path.find("/api/account/token/") >= 0
         ):
             setattr(request, "_dont_enforce_csrf_checks", True)
             setattr(request, "_login_exempt", True)

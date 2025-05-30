@@ -28,6 +28,12 @@ import sys
 
 
 if __name__ == '__main__':
+    try:
+        from common.patch import patch_simplejwt_tokenbackend
+        patch_simplejwt_tokenbackend()
+    except ImportError:
+        pass  # 如果没装 DRF SimpleJWT，或者文件没找到，忽略
+
     if 'celery' in sys.argv:
         if 'eventlet' in sys.argv:
             import eventlet

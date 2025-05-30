@@ -31,6 +31,9 @@ import bus from '../utils/bus';
 import routerModules from './modules/index.js';
 import { rootPath, connectToMain } from '@blueking/sub-saas/dist/main.js';
 
+// 登录
+const Login = () => import('../views/account/login.vue');
+
 // 首页
 const Home = () => import('../views/home/index.vue');
 
@@ -88,6 +91,11 @@ const isIframe = window.location.hash.indexOf('iframe') > -1;
 const base = isIframe ? '' : rootPath;
 
 const routes = [
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login,
+  },
   {
     path: '/',
     name: 'Home',
@@ -302,13 +310,22 @@ const router = new Router({
 connectToMain(router);
 
 router.beforeEach((to, from, next) => {
+  const isLoggedIn = !!localStorage.getItem('access_token');
+  if (to.path !== '/login' && !isLoggedIn) {
+    next('/login');
+  } else if (to.path === '/login' && isLoggedIn) {
+    next('/'); // 已登录访问 login，重定向首页
+  } else {
+    next();
+  }
+
   bus.$on('api-error:user-permission-denied', () => {
     next({ path: '/limitAccess' });
   });
   bus.$on('api-error:application-deployed', () => {
     next({ path: '/exception' });
   });
-  next();
 });
+
 
 export default router;

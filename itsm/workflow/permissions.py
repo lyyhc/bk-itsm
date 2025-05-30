@@ -177,23 +177,14 @@ class IsSuperuser(permissions.BasePermission):
         return UserRole.is_itsm_superuser(request.user.username)
 
 
-class WorkflowElementManagePermission(IamAuthPermit):
+class WorkflowElementManagePermission(IsWorkflowAdmin):
     def has_permission(self, request, view):
         # 免鉴权需要明确声明
         if view.action in getattr(view, "permission_free_actions", []):
             return True
         
-        if view.action in getattr(view, "permission_create_action", ["create"]):
-            project_key = request.data.get("project_key", PUBLIC_PROJECT_PROJECT_KEY)
-            
-            # 平台管理
-            if project_key == PUBLIC_PROJECT_PROJECT_KEY:
-                apply_actions = [view.permission_action_platform]
-                return self.iam_auth(request, apply_actions)
-            
-            # 项目管理
-            apply_actions = self.get_view_iam_actions(view)
-            return self.iam_create_auth(request, apply_actions)
+        if view.action in getattr(view, "permission_create_action", ["create"]):            
+            return super(WorkflowElementManagePermission, self).has_permission(request, view)
         return True
 
     def has_object_permission(self, request, view, obj, **kwargs):
@@ -201,16 +192,7 @@ class WorkflowElementManagePermission(IamAuthPermit):
         if view.action in getattr(view, "permission_free_actions", []):
             return True
         
-        # 平台管理
-        if obj.project_key == PUBLIC_PROJECT_PROJECT_KEY:
-            apply_actions = [view.permission_action_platform]
-            return self.iam_auth(request, apply_actions)
-
-        # 项目管理
-        apply_actions = self.get_view_iam_actions(view)
-        if getattr(view, "permission_resource_is_project", None):
-            obj = Project.objects.get(pk=obj.project_key)
-        return self.iam_auth(request, apply_actions, obj)
+        return super(WorkflowElementManagePermission, self).has_object_permission(request, view, obj)
 
 
 class TaskSchemaPermit(IamAuthPermit):

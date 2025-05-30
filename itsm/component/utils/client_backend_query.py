@@ -112,7 +112,7 @@ def get_group(biz_group_conf, group_enum):
         group_apps = {
             str(item["bk_inst_id"]): {
                 "name": "%s（%s）"
-                % (item["bk_inst_name"], enum.get(item.get(group_enum), _("未接管"))),
+                        % (item["bk_inst_name"], enum.get(item.get(group_enum), _("未接管"))),
                 "key": item["bk_inst_id"],
                 "desc": settings.BIZ_GROUP_DESC,
                 "items": [],
@@ -197,7 +197,9 @@ def get_bk_users(format="list", name_type="bk_username", users=None):
     cache_key = "{}bk_users_{}_{}_{}".format(PREFIX_KEY, format, name_type, user_md5)
     bk_users = cache.get(cache_key)
     if not bk_users:
-        bk_users = update_user_cache(cache_key, format, name_type, users)
+        # """todo: 用户 """
+        bk_users = {"username": "admin", "chname": "admin"}
+        # bk_users = update_user_cache(cache_key, format, name_type, users)
     return bk_users
 
 

@@ -70,7 +70,7 @@ INSTALLED_APPS += (
     # "pipeline.contrib.periodic_task",
     "django_signal_valve",
     # itsm
-    "itsm.gateway",
+    # "itsm.gateway",
     "itsm.role",
     "itsm.pipeline_plugins",
     "itsm.ticket",
@@ -89,7 +89,7 @@ INSTALLED_APPS += (
     "data_migration",
     # 'silk',
     "mptt",
-    "apigw_manager.apigw",
+    # "apigw_manager.apigw",
     "django_mptt_admin",
     "django_extensions",
     "rest_framework",
@@ -107,21 +107,21 @@ INSTALLED_APPS += (
     # 'flower',
     # 'monitors',
     "itsm.monitor",
-    "blueapps.opentelemetry.instrument_app",
+    # "blueapps.opentelemetry.instrument_app",
     "itsm.plugin_service",
-    "bk_notice_sdk",
+    # "bk_notice_sdk",
     "pipeline.contrib.engine_admin",
     "itsm.meta",
 )
 
 INSTALLED_APPS = ("itsm.helper",) + INSTALLED_APPS
 
-AUTHENTICATION_BACKENDS += ("itsm.openapi.authentication.backend.CustomUserBackend",)
+# AUTHENTICATION_BACKENDS += ("itsm.openapi.authentication.backend.CustomUserBackend",)
 
-IS_PAAS_V3 = int(os.getenv("BKPAAS_MAJOR_VERSION", False)) == 3
-IS_OPEN_V3 = IS_PAAS_V3 and RUN_VER == "open"
+IS_PAAS_V3 = False
+IS_OPEN_V3 = False
 
-ENABLE_SYNC_API_GATEWAY = bool(os.getenv("ENABLE_SYNC_API_GATEWAY", False))
+ENABLE_SYNC_API_GATEWAY = False
 # 如果是对外版PAASV3 并且 是容器化版本 并且开启了网关同步 才会执行网关的migrate操作
 if IS_OPEN_V3 and ENGINE_REGION == "default" and ENABLE_SYNC_API_GATEWAY:
     # 网关管理员
@@ -135,7 +135,7 @@ if IS_OPEN_V3 and ENGINE_REGION == "default" and ENABLE_SYNC_API_GATEWAY:
     BK_APIGW_API_SERVER_SUB_PATH = api_host.path.lstrip("/")
 
 # IAM 开启开关
-USE_IAM = True if os.getenv("USE_IAM", "true").lower() == "true" else False
+USE_IAM = False
 if USE_IAM:
     INSTALLED_APPS += (
         "iam",
@@ -160,8 +160,8 @@ MIDDLEWARE = (
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    "account.middleware.JWTAuthenticationMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    # "django.contrib.auth.middleware.SessionAuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     # 去掉后页面可被任何站点嵌入
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -169,12 +169,13 @@ MIDDLEWARE = (
     "django.middleware.locale.LocaleMiddleware",
     # 蓝鲸静态资源服务，内部依赖
     "whitenoise.middleware.WhiteNoiseMiddleware",
+
     # 企业/微信登录中间件
-    "blueapps.account.middlewares.RioLoginRequiredMiddleware",
-    "weixin.core.middlewares.WeixinAuthenticationMiddleware",
-    "weixin.core.middlewares.WeixinLoginMiddleware",
+    # "blueapps.account.middlewares.RioLoginRequiredMiddleware",
+    # "weixin.core.middlewares.WeixinAuthenticationMiddleware",
+    # "weixin.core.middlewares.WeixinLoginMiddleware",
     # 'blueapps.account.middlewares.WeixinLoginRequiredMiddleware',
-    "blueapps.account.middlewares.LoginRequiredMiddleware",
+    # "blueapps.account.middlewares.LoginRequiredMiddleware",
     # 'blueapps.middleware.xss.middlewares.CheckXssMiddleware',
     # exception middleware
     "blueapps.core.exceptions.middleware.AppExceptionMiddleware",
@@ -182,9 +183,6 @@ MIDDLEWARE = (
     # enable nginx http-auth
     # 'itsm.component.misc_middlewares.NginxAuthProxy',
     "itsm.component.misc_middlewares.InstrumentProfilerMiddleware",
-    "apigw_manager.apigw.authentication.ApiGatewayJWTGenericMiddleware",  # JWT 认证
-    "apigw_manager.apigw.authentication.ApiGatewayJWTAppMiddleware",  # JWT 透传的应用信息
-    "apigw_manager.apigw.authentication.ApiGatewayJWTUserMiddleware",  # JWT 透传的用户信息
 )
 
 # 所有环境的日志级别可以在这里配置
@@ -235,26 +233,20 @@ LOGGING = get_logging_config_dict(locals())
 inject_formatters = ("verbose",)
 # 注入到日志配置，会直接在对应 formatter 格式之后添加 trace_format
 # 日志中添加trace_id
-ENABLE_OTEL_TRACE = True if os.getenv("BKAPP_ENABLE_OTEL_TRACE", "0") == "1" else False
-BK_APP_OTEL_INSTRUMENT_DB_API = (
-    True if os.getenv("BKAPP_OTEL_INSTRUMENT_DB_API", "0") == "1" else False
-)
+ENABLE_OTEL_TRACE = False
+BK_APP_OTEL_INSTRUMENT_DB_API = False
 if ENABLE_OTEL_TRACE:
     trace_format = "[trace_id]: %(otelTraceID)s [span_id]: %(otelSpanID)s [resource.service.name]: %(otelServiceName)s"
     inject_logging_trace_info(LOGGING, inject_formatters, trace_format)
 
-# 初始化管理员列表，列表中的人员将拥有预发布环境和正式环境的管理员权限
-# 注意：请在首次提测和上线前修改，之后的修改将不会生效
-BKAPP_ITSM_ADMIN = os.environ.get("BKAPP_ITSM_ADMIN", "")
-INIT_SUPERUSER = set(
-    ["admin"] + [username for username in BKAPP_ITSM_ADMIN.split(",") if username]
-)
+
+INIT_SUPERUSER = ["admin"]
 
 # BKUI是否使用了history模式
 IS_BKUI_HISTORY_MODE = False
 
 # 开启登录弹窗
-IS_AJAX_PLAIN_MODE = True
+IS_AJAX_PLAIN_MODE = False
 
 """
 以下为框架代码 请勿修改
@@ -330,14 +322,14 @@ LANGUAGE_COOKIE_NAME = "blueking_language"
 # REST FRAMEWORK SETTING
 # ==============================================================================
 REST_FRAMEWORK = {
-    "EXCEPTION_HANDLER": "itsm.component.generics.exception_handler",
+    # "EXCEPTION_HANDLER": "itsm.component.generics.exception_handler",
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_PAGINATION_CLASS": "itsm.component.drf.pagination.CustomPageNumberPagination",
     "PAGE_SIZE": 10,
     # 'DEFAULT_PAGINATION_CLASS': None,
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework.authentication.SessionAuthentication",
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     "DEFAULT_FILTER_BACKENDS": (
         "itsm.component.drf.filters.OrderingFilter",
@@ -786,7 +778,7 @@ def my_before_proxy_func(request, json_data, request_headers):
 
 BEFORE_PROXY_FUNC = my_before_proxy_func
 
-BK_API_USE_BKCLOUDS_FIRST = True
+BK_API_USE_BKCLOUDS_FIRST = False
 
 DEFAULT_VARIABLE_NAME = "variable_by_name"
 
@@ -801,10 +793,7 @@ BK_IAM_INNER_HOST = os.environ.get("BK_IAM_V3_INNER_HOST", None)
 TAM_PROJECT_ID = os.environ.get("TAM_PROJECT_ID", "")
 
 # 是否初始化蓝盾
-INIT_DEVOPS_TEMPLATE = os.environ.get("INIT_DEVOPS_TEMPLATE", False)
-
-# 是否显示蓝盾节点
-BKAPP_CI_ENABLED = os.environ.get("BKAPP_CI_ENABLED", "") == "1"
+INIT_DEVOPS_TEMPLATE = False
 
 # 权限中心 SaaS host
 BK_IAM_APP_CODE = os.getenv("BK_IAM_V3_APP_CODE", "bk_iam")
@@ -817,7 +806,7 @@ SYSTEM_CALL_USER = "admin"
 BK_DESKTOP_URL = os.environ.get("BK_DESKTOP_URL") or BK_PAAS_HOST
 
 BK_IAM_API_PREFIX = SITE_URL + "openapi"
-BK_API_USE_TEST_ENV = True if os.environ.get("BK_API_USE_TEST_ENV") == "True" else False
+BK_API_USE_TEST_ENV = False
 
 # iam适配容器化
 IAM_ESB_PAAS_HOST = os.environ.get("BK_COMPONENT_API_URL", BK_PAAS_INNER_HOST)
@@ -912,9 +901,7 @@ try:
 except Exception:
     AUTO_APPROVE_TIME = 5
 
-OPEN_VOICE_NOTICE = (
-    True if os.getenv("BKAPP_OPEN_VOICE_NOTICE", "false").lower() == "true" else False
-)
+OPEN_VOICE_NOTICE = False
 
 # apigw的配置
 BK_APIGW_NAME = os.getenv("BK_APIGW_NAME", "bk-itsm")
@@ -926,9 +913,7 @@ BK_NOTICE = {"BK_API_URL_TMPL": BK_API_URL_TMPL or ""}
 # 蓝鲸插件授权过滤 APP
 PLUGIN_DISTRIBUTOR_NAME = os.getenv("BKAPP_PLUGIN_DISTRIBUTOR_NAME", APP_CODE)
 
-CLOSE_EVERY_DAY_TICKET_NOTIFY = bool(
-    os.getenv("BKAPP_CLOSE_EVERY_DAY_TICKET_NOTIFY", False)
-)
+CLOSE_EVERY_DAY_TICKET_NOTIFY = False
 
 # 国密相关的改造配置
 # BKPAAS_BK_CRYPTO_TYPE 为 PaaSV3 国密版本支持变量，可选值：CLASSIC-国际算法，SHANGMI-国家算法
@@ -961,6 +946,7 @@ NOTIFY_ROUTER_NAME = os.getenv("BKAPP_NOTIFY_ROUTER_NAME", "router")
 
 IAM_SDK_CLIENT_TIMEOUT = int(os.getenv("BKAPP_IAM_SDK_CLIENT_TIMEOUT", 20))
 
+
 # 公共配置
 BK_SHARED_RES_URL = os.getenv("BKPAAS_SHARED_RES_URL") or os.getenv(
     "BKAPP_SHARED_RES_URL"
@@ -985,3 +971,22 @@ else:
         "BKAPP_QW_WEB_HOOK_URL",
         "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={}",
     )
+
+AUTHENTICATION_BACKENDS = (
+    'account.backends.JWTBackend',
+)
+
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    # access token 有效期，比如 15 分钟
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    # refresh token 有效期，比如 7 天
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    # 可选，token 签发时间容忍度
+    'LEEWAY': 0,
+    # 可选，自定义算法，默认HS256
+    'ALGORITHM': 'HS256',
+    # 其它可选配置...
+}

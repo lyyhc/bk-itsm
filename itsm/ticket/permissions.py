@@ -106,14 +106,14 @@ class TicketPermissionValidate(permissions.BasePermission):
         if view.action == "close" and obj.can_close(username):
             return True
 
-        iam_ticket_manage_auth = self.iam_ticket_manage_auth(request, obj)
-
-        if view.action == "exception_distribute":
-            if not iam_ticket_manage_auth:
-                self.message = _("抱歉，您无权执行此操作，因为您该服务没有工单管理的权限")
-                return False
-            else:
-                return True
+        # iam_ticket_manage_auth = self.iam_ticket_manage_auth(request, obj)
+        # 
+        # if view.action == "exception_distribute":
+        #     if not iam_ticket_manage_auth:
+        #         self.message = _("抱歉，您无权执行此操作，因为您该服务没有工单管理的权限")
+        #         return False
+        #     else:
+        #         return True
 
         if view.action == "operate":
             try:
@@ -125,7 +125,7 @@ class TicketPermissionValidate(permissions.BasePermission):
                 request, node
             )
 
-            return any([state_permission, iam_ticket_manage_auth])
+            return any([state_permission])
 
         # 查看权限校验
         if request.method in permissions.SAFE_METHODS:
@@ -138,7 +138,7 @@ class TicketPermissionValidate(permissions.BasePermission):
             if token and obj.is_token_accessible(username, token):
                 return True
 
-            return self.iam_ticket_view_auth(request, obj)
+            # return self.iam_ticket_view_auth(request, obj)
 
         # 处理权限校验
         self.message = _("抱歉，您无权操作该单据")

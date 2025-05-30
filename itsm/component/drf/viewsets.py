@@ -29,7 +29,7 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 
 from itsm.component.drf.mixins import ApiGenericMixin, PermissionApiGenericMixin
-from itsm.component.drf.permissions import IamAuthPermit, IamAuthProjectViewPermit
+from itsm.component.drf.permissions import IamAuthPermit, IamAuthProjectViewPermit, IsManager
 
 
 class APIView(ApiGenericMixin, APIView):
@@ -64,7 +64,7 @@ class ModelViewSet(ApiGenericMixin, viewsets.ModelViewSet):
 
 
 class AuthModelViewSet(ModelViewSet):
-    permission_classes = (IamAuthPermit,)
+    permission_classes = (IsManager,)
 
 
 class AuthWithoutResourceModelViewSet(ModelViewSet):

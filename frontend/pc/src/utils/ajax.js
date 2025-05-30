@@ -65,6 +65,11 @@ bus.$on('processData', (response) => {
  */
 instance.interceptors.request.use(
   (config) => {
+    // 添加 Authorization token
+    const access_token = localStorage.getItem('access_token'); // 你自己的 token key 名
+    if (access_token) {
+      config.headers.Authorization = `Bearer ${access_token}`;
+    }
     // 添加工单查看权限
     const token = sessionStorage.getItem('itsm_token');
     if (token && config.url.indexOf('ticket/') === 0) {

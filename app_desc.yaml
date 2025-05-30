@@ -1,5 +1,5 @@
 spec_version: 2
-app_version: "2.7.6"
+app_version: "2.7.5"
 app:
     region: default
     bk_app_code: bk_itsm
@@ -40,22 +40,23 @@ modules:
         processes:
             web:
                 command: bash ./bin/start_web.sh
-                plan: 2C4G1R
-                replicas: 1
+                plan: 4C2G5R
+                replicas: 5
             beat:
                 command: python manage.py celery beat -l info
-                plan: 2C4G1R
+                plan: 4C1G5R
                 replicas: 1
             pworker:
                 command: python manage.py celery worker -n prefork@%h -P threads -c 10 -l info --maxtasksperchild=100
-                plan: 2C4G1R
-                replicas: 1
+                plan: 4C2G5R
+                replicas: 5
             gworker:
                 command: python manage.py celery worker -P gevent -n gevent@%h -c 4 -l info --maxtasksperchild=100
-                plan: 2C4G1R
-                replicas: 1
+                plan: 4C2G5R
+                replicas: 5
         svc_discovery:
             bk_saas:
                 -   bk_app_code: "bk_itsm"
         bkmonitor:
             port: 5001
+

@@ -29,7 +29,7 @@ from rest_framework import permissions
 from itsm.auth_iam.utils import IamRequest
 from itsm.component.drf import permissions as perm
 from itsm.component.drf.exception import ValidationError
-from itsm.component.drf.permissions import IamAuthPermit
+from itsm.component.drf.permissions import IamAuthPermit, IsManager
 from itsm.project.models import Project
 from itsm.role.models import UserRole
 from itsm.service.models import CatalogService, Service
@@ -101,7 +101,7 @@ class ServiceDeletePermit(permissions.BasePermission):
         return True
 
 
-class ServicePermit(IamAuthPermit):
+class ServicePermit(IsManager):
     """
     服务鉴权
     """
@@ -127,21 +127,6 @@ class ServicePermit(IamAuthPermit):
                     project_key = service.project_key
                 elif service.project_key != project_key:
                     raise ValidationError(_("服务所属项目不一致"))
-
-                resources.append({
-                    "resource_id": service.id,
-                    "resource_type": "service",
-                    "creator": getattr(service, "creator", ""),
-                })
-            
-            iam_client = IamRequest(request)
-            allowed = iam_client.batch_resource_multi_actions_allowed(
-                actions=["service_manage"],
-                resources=resources,
-                project_key=project_key
-                
-            )
-            return all([i["service_manage"] for i in allowed.values()])
             
         return super().has_permission(request, view)
     
@@ -149,4 +134,4 @@ class ServicePermit(IamAuthPermit):
         if view.action in self.service_clone_action:
             """针对 clone 类操作，不需要检测实例对象权限"""
             return True
-        return super().has_object_permission(request, view, obj, **kwargs)
+        return super().has_object_permission(request, view, obj)

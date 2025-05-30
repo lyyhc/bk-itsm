@@ -151,22 +151,31 @@ Vue.use(bkMagic, {
 
 locale.i18n((key, value) => i18n.t(key, value));
 
-store.dispatch('getPlatformPreData').then(()=> {
-  const app = new Vue({
-    el: "#app",
-    i18n,
-    router,
-    store,
-    components: {
-      App,
-    },
-    template: "<App/>",
-  });
+const isLoggedIn = !!localStorage.getItem('access_token');
+if (isLoggedIn) {
+  console.log("isLoggedIn", isLoggedIn)
+  store.dispatch('getPlatformPreData').then(()=> {
+    const app = new Vue({
+      el: "#app",
+      i18n,
+      router,
+      store,
+      components: {
+        App,
+      },
+      template: "<App/>",
+    });
 
-  window.app = app;
-}).catch(error =>{
-  console.warn(error);
-})
-
+    window.app = app;
+  }).catch(error =>{
+    console.warn(error);
+  })
+} else {
+  // 未登录：只加载登录组件
+  new Vue({
+    el: '#app',
+    render: h => h(require('./views/account/login.vue').default),
+    });
+}
 
 

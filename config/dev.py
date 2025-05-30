@@ -64,7 +64,7 @@ if ALLOW_CSRF:
 MEDIA_URL = "%smedia/" % SITE_URL
 
 # IAM
-IAM_SKIP_AUTH = os.getenv("BKAPP_IAM_SKIP_AUTH", False)
+IAM_SKIP_AUTH = True
 
 # ==============================================================================
 # 加载环境差异化配置
@@ -75,7 +75,7 @@ for _setting in dir(ver_settings):
         locals()[_setting] = getattr(ver_settings, _setting)
 
 # 针对 paas_v3 容器化铺垫
-ENGINE_REGION = os.environ.get("BKPAAS_ENGINE_REGION", "open")
+ENGINE_REGION = "open"
 if ENGINE_REGION == "default" and RUN_VER != "ieod" :
     default_settings = importlib.import_module(
         "adapter.config.sites.%s.ver_settings" % "v3"

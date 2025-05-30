@@ -30,9 +30,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from django.conf import settings
+
+from itsm.component.constants import ADMIN_SUPERUSER
 from itsm.component.drf.mixins import ApiGenericMixin
 from itsm.component.constants.iam import RESOURCES, ACTIONS, BK_IAM_SYSTEM_NAME, PLATFORM_PERMISSION
 from itsm.auth_iam.utils import IamRequest
+from itsm.role.models import UserRole
 
 
 class PermissionViewSet(ApiGenericMixin, ViewSet):
@@ -63,8 +66,11 @@ class PermissionViewSet(ApiGenericMixin, ViewSet):
 
     @action(detail=False, methods=["get"])
     def platform_permission(self, request):
-        iam_client = IamRequest(request)
-        verify_actions = PLATFORM_PERMISSION
-        auth_actions = iam_client.resource_multi_actions_allowed(verify_actions, [])
-        
+        # iam_client = IamRequest(request)
+        # verify_actions = PLATFORM_PERMISSION
+        # auth_actions = iam_client.resource_multi_actions_allowed(verify_actions, [])
+        auth_actions = {}
+        if UserRole.objects.filter(role_key=ADMIN_SUPERUSER, members=f',{request.user.username},'):
+            auth_actions = {action["id"]: True for action in ACTIONS}
+
         return Response(auth_actions)
